@@ -6,8 +6,7 @@ import room_access from "./components/room_access.vue";
 import graphic_view from "./components/graphic_view.vue";
 import type { PS, RT } from "@/@types/types";
 import { io } from "socket.io-client";
-// const socket = io("http://192.168.11.17:8081", {
-const socket = io("https://ozisan-offense.onrender.com", {
+const socket = io(process.env.VUE_APP_BACKEND_DOMAIN, {
   withCredentials: true,
 });
 
@@ -63,7 +62,8 @@ body {
 
 <template>
   <h1 v-if="!req_connection_got" id="req_connection_got">
-    サーバーとの接続に時間がかかっています...
+    サーバーとの接続に時間がかかっています...<br />
+    最悪値：五分程度
   </h1>
   <login_manager
     v-if="!myPS.connection && req_connection_got"
