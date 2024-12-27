@@ -420,7 +420,7 @@ onMounted(async () => {
 
       this.speed = PC.bul_speed * 50;
       // this.speed = PC.bul_speed * 0.5;
-      this.counter = 2000;
+      this.counter = 3000;
       this.damage = PC.damage;
     }
     move(time_delta: number) {
@@ -441,7 +441,7 @@ onMounted(async () => {
         0,
         this.speed * time_delta
       );
-      if (this.exist && PCs[myPCind].model && this.ray) {
+      if (PCs[myPCind].model && this.ray) {
         this.intersects = this.ray.intersectObjects([PCs[myPCind].model]);
         if (this.intersects.length > 0) {
           if (PCs[myPCind].PT.side != this.Pside) {
@@ -461,15 +461,35 @@ onMounted(async () => {
               hit_object.id,
               this.Pside
             );
-            kia_bullet(this.bullet_id);
             this.exist = false;
           }
         }
       }
+      PCs.forEach((PC, i) => {
+        if (PC.model && this.ray && i % PCs.length == myPCind) {
+          this.intersects = this.ray.intersectObjects([PC.model]);
+          if (this.intersects.length > 0) {
+            // ダメージ計算は自身のみ
+            if (PC.PT.id == props.id && PC.PT.side != this.Pside) {
+              // ヘッドショット後回し
+              // const head_shot = [263, 279, 285, 313];
+              const hit_object = this.intersects[0].object;
+              // if (head_shot.find((e) => e === hit_object.id)) {
+              //   nPCs[i].PT.health -= this.damage * 2;
+              //   console.log("got head shot", nPC.PT.id);
+              // } else {
+              nPCs[i].PT.health -= this.damage as number;
+              console.log("got body shot", PC.PT.id, hit_object.id);
+              hit_object.material.color.r = 1;
+              this.exist = false;
+            }
+          }
+        }
+      });
       nPCs.forEach((nPC, i) => {
         // nPCの処理担当はインしているPCに均等に。
         // あと処理が深すぎるせいかeslintがdamage疑ってるのでas。
-        if (this.exist && nPC.model && this.ray && i % PCs.length == myPCind) {
+        if (nPC.model && this.ray && i % PCs.length == myPCind) {
           this.intersects = this.ray.intersectObjects([nPC.model]);
           if (this.intersects.length > 0) {
             if (nPC.PT.side != this.Pside) {
@@ -483,12 +503,14 @@ onMounted(async () => {
               nPCs[i].PT.health -= this.damage as number;
               console.log("got body shot", nPC.PT.id, hit_object.id);
               hit_object.material.color.r = 1;
-              kia_bullet(this.bullet_id);
               this.exist = false;
             }
           }
         }
       });
+      if (!this.exist) {
+        kia_bullet(this.bullet_id);
+      }
 
       this.bullet.position.x +=
         Math.sin(this.vec.y) * Math.cos(this.vec.e) * this.speed * time_delta;
