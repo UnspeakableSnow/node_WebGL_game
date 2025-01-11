@@ -619,15 +619,37 @@ onMounted(async () => {
       else if (wasd_down === 3) move_rad = 1.25;
       else if (wasd_down === 1) move_rad = 1.5;
       else move_rad = 1.75; // 9
-      PCs[myPCind].PT.velocity.x =
-        Math.sin(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation) *
-        move_scale;
-      PCs[myPCind].PT.velocity.z =
-        Math.cos(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation) *
-        move_scale;
+      if (PCs[myPCind].model) {
+        const myPCmoving_ray = new THREE.Raycaster(
+          new THREE.Vector3(
+            PCs[myPCind].PT.position.x,
+            PCs[myPCind].PT.position.y + 20,
+            PCs[myPCind].PT.position.z
+          ),
+          new THREE.Vector3(
+            Math.sin(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation),
+            0,
+            Math.cos(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation)
+          ),
+          0,
+          move_scale * time_delta + 50
+        );
+        const intersects = myPCmoving_ray.intersectObjects([model_r]);
+        if (intersects.length > 0) {
+          PCs[myPCind].PT.velocity.x /= 2;
+          PCs[myPCind].PT.velocity.z /= 2;
+        } else {
+          PCs[myPCind].PT.velocity.x =
+            Math.sin(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation) *
+            move_scale;
+          PCs[myPCind].PT.velocity.z =
+            Math.cos(Math.PI * move_rad + PCs[myPCind].PT.position.y_rotation) *
+            move_scale;
+        }
+      }
     } else {
-      PCs[myPCind].PT.velocity.x *= 0.5;
-      PCs[myPCind].PT.velocity.z *= 0.5;
+      PCs[myPCind].PT.velocity.x /= 2;
+      PCs[myPCind].PT.velocity.z /= 2;
     }
     PCs[myPCind].PT.position.y_rotation -= mouse_x * 0.06;
     PCs[myPCind].PT.position.elevation_angle -= mouse_y * 0.06;
